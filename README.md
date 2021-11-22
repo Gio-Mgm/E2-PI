@@ -39,7 +39,7 @@ Améliorer l’application d’intelligence artificielle en développant une év
 
 ## Instructions
 
-Pour lancer le projet vous devez cloner le projet et installer les requiements:
+Pour lancer le projet vous devez forker le projet et installer les requiements:
 - **pip install -r requirements.txt**
 
 Puis lancer l'application en locale:
