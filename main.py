@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import pycaret.regression as pyc
 
 st.set_page_config(page_title='House prices', layout='centered')
@@ -32,44 +31,48 @@ building_options = {
 # Sidebar
 # Header of Specify Input Parameters
 st.sidebar.write('Quels sont vos critères?')
-def user_input_features():
-    Building = st.sidebar.selectbox('Type de bien', options=building_options.keys())
-    Quality =  st.sidebar.slider('Qualité du bien', int(X["Overall Qual"].min()), int(X["Overall Qual"].max()))
-    Age = st.sidebar.selectbox('Ancienneté du bien', options=age_options.keys())
-    LotArea = st.sidebar.slider('Surface totale', int(X["Lot Area"].min()), int(X["Lot Area"].max()), int(X["Lot Area"].mean()))
-    GrLivArea = st.sidebar.slider('Surface au sol', int(X["Gr Liv Area"].min()), int(X["Gr Liv Area"].max()), int(X["Gr Liv Area"].mean()))
-    LotFrontage = st.sidebar.slider('Taille de la façade', int(X["Lot Frontage"].min()), int(X["Lot Frontage"].max()), int(X["Lot Frontage"].mean())),
-    Bedrooms = st.sidebar.slider('Nombre de chambres', int(X["Bedroom AbvGr"].min()), int(X["Bedroom AbvGr"].max()), step=1)
-    Kitchens = st.sidebar.slider('Nombre de cuisines', int(X["Kitchen AbvGr"].min()), int(X["Kitchen AbvGr"].max()), step=1)
-    Bathrooms = st.sidebar.slider('Nombre de salles de bains', int(X["Bathrooms"].min()), int(X["Bathrooms"].max()), step=1)
+
+
+def user_input_features() -> pd.DataFrame:
+    building = st.sidebar.selectbox('Type de bien', options=building_options.keys())
+    quality = st.sidebar.slider('Qualité du bien', int(X["Overall Qual"].min()), int(X["Overall Qual"].max()))
+    age = st.sidebar.selectbox('Ancienneté du bien', options=age_options.keys())
+    lot_area = st.sidebar.slider('Surface totale', int(X["Lot Area"].min()), int(X["Lot Area"].max()), int(X["Lot Area"].mean()))
+    gr_liv_area = st.sidebar.slider('Surface au sol', int(X["Gr Liv Area"].min()), int(X["Gr Liv Area"].max()), int(X["Gr Liv Area"].mean()))
+    lot_frontage = st.sidebar.slider('Taille de la façade', int(X["Lot Frontage"].min()), int(X["Lot Frontage"].max()), int(X["Lot Frontage"].mean())),
+    bedrooms = st.sidebar.slider('Nombre de chambres', 1, int(X["Bedroom AbvGr"].max()), step=1)
+    kitchens = st.sidebar.slider('Nombre de cuisines', 1, int(X["Kitchen AbvGr"].max()), step=1)
+    bathrooms = st.sidebar.slider('Nombre de salles de bains', 1, int(X["Bathrooms"].max()), step=1)
 
     data = {
-        'AgeBins': age_options[Age],
-        'Bldg Type': building_options[Building],
-        'Gr Liv Area': GrLivArea,
-        'Lot Frontage': LotFrontage,
-        'Lot Area': LotArea,
-        'Bedroom AbvGr': Bedrooms,
-        'Kitchen AbvGr': Kitchens,
-        'Bathrooms': Bathrooms,
-        'Overall Qual': Quality,
+        'AgeBins': age_options[age],
+        'Bldg Type': building_options[building],
+        'Gr Liv Area': gr_liv_area,
+        'Lot Frontage': lot_frontage,
+        'Lot Area': lot_area,
+        'Bedroom AbvGr': bedrooms,
+        'Kitchen AbvGr': kitchens,
+        'Bathrooms': bathrooms,
+        'Overall Qual': quality,
     }
     return pd.DataFrame(data, index=[0])
 
-def user_input_extra_features():
+
+def user_input_extra_features() -> pd.DataFrame:
     with st.expander('Plus de critères'):
-        Floor = st.checkbox('Avec étage?')
-        Basement = st.checkbox('Avec sous-sol?')
-        Garage = st.checkbox('Avec garage?')
-        Fireplace = st.checkbox('Avec cheminée?')
+        floor = st.checkbox('Avec étage?')
+        basement = st.checkbox('Avec sous-sol?')
+        garage = st.checkbox('Avec garage?')
+        fireplace = st.checkbox('Avec cheminée?')
 
     data = {
-        "Has2ndFloor": Floor,
-        "HasBasement": Basement,
-        "HasGarage": Garage,
-        "has_fireplace": Fireplace,
+        "Has2ndFloor": 1 if floor else 0,
+        "HasBasement": 1 if basement else 0,
+        "HasGarage": 1 if garage else 0,
+        "has_fireplace": 1 if fireplace else 0,
     }
     return pd.DataFrame(data, index=[0])
+
 
 df_1 = user_input_features()
 
@@ -81,7 +84,7 @@ df_2 = user_input_extra_features()
 st.write('---')
 
 df = pd.concat([df_1, df_2], axis=1)
-
+st.write(df)
 # Apply Model to Make Prediction
 loaded_model = pyc.load_model('./upgrade/fine_tuned_lgbm')
 prediction = loaded_model.predict(df)

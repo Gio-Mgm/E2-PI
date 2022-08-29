@@ -1,45 +1,44 @@
+"""Utility functions for data exploration and cleaning."""
+from typing import Any, Union
 import pandas as pd
 import numpy as np
 
 
-def get_df_uniques(df):
-    attFeatures = []
+def get_df_uniques(df: pd.DataFrame) -> pd.DataFrame:
+    att_features = []
     for col in df.columns:
-        attFeatures.append(
+        att_features.append(
             [col, df[col].dtype, df[col].nunique(), df[col].drop_duplicates().values]
         )
-    return pd.DataFrame(attFeatures, columns=[
+    return pd.DataFrame(att_features, columns=[
         'Features', 'Dtype', 'Uniques count', 'Values'
     ])
 
 
-def get_corr_pairs_thresh(df, size, thresh):
+def get_corr_pairs_thresh(df: pd.DataFrame, size: int, thresh: float):
     s = df.corr().abs().unstack().sort_values(ascending=False)
     s = s[s.values < 1]
     for i in range(size * 2):
-        if s[i] > thresh:
-            if i % 2 == 0:
-                print("{:.5f} {}".format(s[i], s.index[i]))
+        if s[i] > thresh and i % 2 == 0:
+            print("{:.5f} {}".format(s[i], s.index[i]))
 
 
-def manage_major_values(df, thresh, drop=False):
+def manage_major_values(df: pd.DataFrame, thresh: float, drop: bool = False) -> pd.DataFrame:
     s = pd.Series(dtype="float64")
     for col in df.columns:
-        # Ajout dans la Series du pourcentage d'occurence
-        # par rapport à la taille de la colonne pour chaque colonnes
+        # add to series percent representation of major value for each column
         s.loc[col] = df[col].value_counts().iloc[0] / len(df[col]) * 100
-    # Récupération des x colonnes avec le pourcentage le plus haut
-    # return(s[s > thresh].sort_values(ascending=False))
+    # get n columns with the highest major value
     return df.drop(columns=s[s > thresh].index.tolist()) if drop else df
 
 
-def import_data(file, index_col=0):
+def import_data(csv_file: str, index_col: Union[int, Any] = 0) -> pd.DataFrame:
     """create a dataframe and optimize its memory usage"""
-    df = pd.read_csv(file, parse_dates=True, keep_date_col=True, index_col=index_col)
-    df = reduce_mem_usage(df)
-    return df
+    df = pd.read_csv(csv_file, parse_dates=True, keep_date_col=True, index_col=index_col)
+    return reduce_mem_usage(df)
 
-def reduce_mem_usage(df):
+
+def reduce_mem_usage(df: pd.DataFrame) -> pd.DataFrame:
     """ iterate through all the columns of a dataframe and modify the data type
         to reduce memory usage.
     """
@@ -78,6 +77,6 @@ def reduce_mem_usage(df):
     return df
 
 
-def compute_isna_percent(df):
+def compute_isna_percent(df: pd.DataFrame) -> pd.Series:
     nas = df.isna().sum()
     return nas[nas > 0].apply(lambda x: round(x / df.shape[0] * 100, 2)).sort_values(ascending=False)
